@@ -22,7 +22,7 @@
           CBT
         </div>
         <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Examination Login</h1>
-        <p class="text-sm text-slate-500 mt-1">Enter your assigned one-time access passcode</p>
+        <p class="text-sm text-slate-500 mt-1">Enter your multi-use access passcode</p>
       </div>
 
       <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
@@ -34,7 +34,7 @@
             type="text" 
             id="passcode-input" 
             required 
-            placeholder="e.g. CBT-8A2F9B"
+            placeholder="e.g. CBT-8A2F9"
             autocomplete="off"
             class="w-full px-4 py-3 text-center tracking-widest uppercase font-mono text-lg rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition"
           >
@@ -50,10 +50,10 @@
         </button>
       </form>
 
-      <!-- Admin Tools Drawer -->
+      <!-- Admin Tools Gate Link -->
       <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-        <span>Session Protected</span>
-        <button onclick="toggleAdminModal(true)" class="hover:text-indigo-600 underline font-medium">
+        <span>Session Protected (10 Uses/Code)</span>
+        <button type="button" onclick="openAdminGate()" class="hover:text-indigo-600 underline font-medium">
           Admin: Passcode Manager
         </button>
       </div>
@@ -61,19 +61,38 @@
   </div>
 
   <!-- ==========================================
-       VIEW 2: CBT EXAM APPLICATION (Hidden)
+       VIEW 2: CBT EXAM APPLICATION (Hidden Initially)
   =========================================== -->
   <div id="cbt-app" class="hidden min-h-screen flex flex-col">
-    <!-- Header -->
+    <!-- Header with Timer & Logout -->
     <header class="bg-indigo-950 text-white shadow sticky top-0 z-10 border-b border-indigo-800">
-      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         <div>
           <h1 class="text-base md:text-lg font-bold tracking-tight">Examination Assessment</h1>
-          <p class="text-xs text-indigo-300">Session ID: <span id="session-badge" class="font-mono text-amber-300"></span></p>
+          <p class="text-xs text-indigo-300">
+            Passcode: <span id="session-badge" class="font-mono text-amber-300 font-semibold"></span> | 
+            Remaining: <span id="uses-left-badge" class="text-emerald-300 font-semibold"></span>
+          </p>
         </div>
-        <div id="timer-box" class="flex items-center gap-2 bg-indigo-900/80 px-3.5 py-1.5 rounded-lg border border-indigo-700">
-          <span class="text-xs text-indigo-200">Time Left:</span>
-          <span id="timer" class="font-mono text-base md:text-lg font-bold text-amber-400">10:00</span>
+        
+        <div class="flex items-center gap-3">
+          <!-- Timer -->
+          <div id="timer-box" class="flex items-center gap-2 bg-indigo-900/80 px-3.5 py-1.5 rounded-lg border border-indigo-700">
+            <span class="text-xs text-indigo-200 hidden sm:inline">Time Left:</span>
+            <span id="timer" class="font-mono text-base md:text-lg font-bold text-amber-400">10:00</span>
+          </div>
+
+          <!-- Logout Button -->
+          <button 
+            type="button" 
+            onclick="logoutUser()" 
+            class="px-3 py-1.5 bg-rose-600/90 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition border border-rose-500/50 flex items-center gap-1.5 shadow-sm"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
         </div>
       </div>
     </header>
@@ -151,7 +170,7 @@
       <div id="result-container" class="hidden max-w-3xl mx-auto w-full bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
         <div class="text-center pb-6 border-b border-slate-100">
           <h2 class="text-2xl font-bold text-slate-900">Final Assessment Result</h2>
-          <p class="text-slate-500 text-sm mt-1">This session is now permanently locked.</p>
+          <p class="text-slate-500 text-sm mt-1">Test completed. You may log out or retake if attempts remain.</p>
           
           <div class="mt-6 flex justify-center items-center gap-8">
             <div class="text-center">
@@ -169,39 +188,133 @@
           <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 mb-4">Detailed Correction</h3>
           <div id="review-list" class="space-y-4 max-h-96 overflow-y-auto pr-2"></div>
         </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+          <button onclick="logoutUser()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-medium text-sm rounded-lg transition">
+            Exit to Login
+          </button>
+        </div>
       </div>
     </main>
   </div>
 
   <!-- ==========================================
-       ADMIN GENERATOR MODAL (Issue One-Time Passcodes)
+       MODAL 1: ADMIN PASSWORD GATE (Coker@1800)
+  =========================================== -->
+  <div id="admin-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200">
+      <div class="text-center mb-5">
+        <div class="w-10 h-10 bg-amber-100 text-amber-700 rounded-full mx-auto flex items-center justify-center mb-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">Admin Authentication</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Enter supervisor password to manage passcodes.</p>
+      </div>
+
+      <form onsubmit="verifyAdminPassword(event)" class="space-y-3">
+        <div>
+          <input 
+            type="password" 
+            id="admin-pass-input" 
+            required 
+            placeholder="Admin Password"
+            autocomplete="current-password"
+            class="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 outline-none"
+          >
+        </div>
+        <div id="admin-auth-error" class="hidden text-rose-600 text-xs font-medium text-center"></div>
+        
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeAdminGate()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition">
+            Cancel
+          </button>
+          <button type="submit" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
+            Authorize
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: ADMIN PASSCODE MANAGER (Protected)
   =========================================== -->
   <div id="admin-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-base font-bold text-slate-900">Generate Unique Passcodes</h3>
-        <button onclick="toggleAdminModal(false)" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
-      </div>
-      <p class="text-xs text-slate-500 mb-4">
-        Each code is single-use only. Once a candidate logs in with a code, it is permanently consumed.
-      </p>
-
-      <div class="flex gap-2 mb-4">
-        <input id="admin-count" type="number" min="1" max="50" value="5" class="w-20 px-3 py-2 border rounded-lg text-sm text-center">
-        <button onclick="generatePasscodes()" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2">
-          Generate Keys
-        </button>
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+      <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Passcode Manager</h3>
+          <p class="text-xs text-slate-500">Each code decrements on each login</p>
+        </div>
+        <button onclick="toggleAdminModal(false)" class="text-slate-400 hover:text-slate-600 text-2xl font-semibold">&times;</button>
       </div>
 
-      <div class="mb-4">
-        <label class="block text-xs font-semibold text-slate-600 mb-1">Active Available Passcodes:</label>
-        <div id="active-keys-list" class="bg-slate-50 border border-slate-200 rounded-lg p-3 font-mono text-xs max-h-40 overflow-y-auto select-all">
-          No keys active.
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">Number of Keys</label>
+          <input id="admin-count" type="number" min="1" max="50" value="5" class="w-full px-3 py-2 border rounded-lg text-sm text-center">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">Uses Per Key</label>
+          <input id="admin-uses-limit" type="number" min="1" max="100" value="10" class="w-full px-3 py-2 border rounded-lg text-sm text-center">
         </div>
       </div>
 
-      <div class="flex justify-between items-center pt-2">
-        <button onclick="resetKeyDatabase()" class="text-xs text-rose-600 hover:underline">Reset All Keys</button>
+      <button onclick="generatePasscodes()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg py-2.5 mb-4 transition shadow-sm">
+        Generate New Passcodes
+      </button>
+
+      <!-- Active Passcodes & Action Tools -->
+      <div class="mb-4 flex flex-col flex-grow min-h-0">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-slate-700">Active Passcodes:</label>
+          <div class="flex items-center gap-1.5">
+            <!-- Copy All Button -->
+            <button 
+              id="copy-all-btn"
+              onclick="copyAllPasscodes()" 
+              class="px-2.5 py-1 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-300 flex items-center gap-1 transition"
+              title="Copy table to clipboard"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              <span>Copy All</span>
+            </button>
+            <!-- Export CSV Button -->
+            <button 
+              onclick="exportPasscodesToCSV()" 
+              class="px-2.5 py-1 text-xs font-medium bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md border border-emerald-300 flex items-center gap-1 transition"
+              title="Download CSV spreadsheet"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-lg overflow-y-auto flex-grow max-h-48">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-100 text-slate-500 font-medium sticky top-0 border-b border-slate-200">
+              <tr>
+                <th class="p-2">Passcode</th>
+                <th class="p-2 text-center">Uses Left</th>
+                <th class="p-2 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody id="active-keys-table-body" class="divide-y divide-slate-200">
+              <!-- Populated via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-3 border-t border-slate-100 mt-auto">
+        <button onclick="resetKeyDatabase()" class="text-xs text-rose-600 hover:underline">Revoke All Keys</button>
         <button onclick="toggleAdminModal(false)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg">Close</button>
       </div>
     </div>
@@ -265,16 +378,20 @@
     ];
 
     /* ==========================================================
-       SECURITY & TOKEN STORE ENGINE
+       PASSCODE STORE WITH 10-USE COUNTDOWN ENGINE
     ========================================================== */
-    const STORAGE_KEY = "CBT_PASSCODES_V1";
+    const STORAGE_KEY = "CBT_PASSCODES_COUNTDOWN_V2";
     const SESSION_AUTH_KEY = "CBT_ACTIVE_SESSION";
+    const ADMIN_SECRET = "Coker@1800";
 
-    // Initialize default starter passcodes if none exist
     function getStoredPasscodes() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (!stored) {
-        const defaults = ["CBT-A89F2", "CBT-B47X1", "CBT-D92K8"];
+        const defaults = [
+          { code: "CBT-A89F2", usesLeft: 10 },
+          { code: "CBT-B47X1", usesLeft: 10 },
+          { code: "CBT-D92K8", usesLeft: 10 }
+        ];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
         return defaults;
       }
@@ -285,34 +402,28 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
     }
 
-    function refreshAdminList() {
-      const keys = getStoredPasscodes();
-      const container = document.getElementById("active-keys-list");
-      if (keys.length === 0) {
-        container.innerHTML = "<span class='text-slate-400'>No active passcodes. Generate new ones above.</span>";
+    /* --- ADMIN AUTHENTICATION GATE --- */
+    function openAdminGate() {
+      document.getElementById("admin-pass-input").value = "";
+      document.getElementById("admin-auth-error").classList.add("hidden");
+      document.getElementById("admin-auth-modal").classList.remove("hidden");
+    }
+
+    function closeAdminGate() {
+      document.getElementById("admin-auth-modal").classList.add("hidden");
+    }
+
+    function verifyAdminPassword(e) {
+      e.preventDefault();
+      const enteredPass = document.getElementById("admin-pass-input").value;
+      const errorDiv = document.getElementById("admin-auth-error");
+
+      if (enteredPass === ADMIN_SECRET) {
+        closeAdminGate();
+        toggleAdminModal(true);
       } else {
-        container.innerHTML = keys.map(k => `<div>${k}</div>`).join("");
-      }
-    }
-
-    function generatePasscodes() {
-      const count = parseInt(document.getElementById("admin-count").value) || 1;
-      const current = getStoredPasscodes();
-      const newKeys = [];
-
-      for (let i = 0; i < count; i++) {
-        const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
-        newKeys.push(`CBT-${randomPart}`);
-      }
-
-      savePasscodes([...current, ...newKeys]);
-      refreshAdminList();
-    }
-
-    function resetKeyDatabase() {
-      if (confirm("Revoke all active passcodes? Unused passcodes will be wiped.")) {
-        localStorage.removeItem(STORAGE_KEY);
-        refreshAdminList();
+        errorDiv.textContent = "Incorrect password. Access denied.";
+        errorDiv.classList.remove("hidden");
       }
     }
 
@@ -321,8 +432,111 @@
       if (show) refreshAdminList();
     }
 
+    function refreshAdminList() {
+      const keys = getStoredPasscodes();
+      const tableBody = document.getElementById("active-keys-table-body");
+      tableBody.innerHTML = "";
+
+      if (keys.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='3' class='p-3 text-center text-slate-400'>No active passcodes.</td></tr>";
+        return;
+      }
+
+      keys.forEach(k => {
+        const row = document.createElement("tr");
+        const isDepleted = k.usesLeft <= 0;
+        row.className = isDepleted ? "bg-rose-50/50 text-slate-400" : "";
+        row.innerHTML = `
+          <td class="p-2 font-mono font-medium ${isDepleted ? 'line-through text-slate-400' : 'text-slate-800'}">${k.code}</td>
+          <td class="p-2 text-center font-bold ${k.usesLeft > 3 ? 'text-indigo-600' : k.usesLeft > 0 ? 'text-amber-600' : 'text-rose-600'}">${k.usesLeft}</td>
+          <td class="p-2 text-right">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${isDepleted ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">
+              ${isDepleted ? 'Exhausted' : 'Active'}
+            </span>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function generatePasscodes() {
+      const count = parseInt(document.getElementById("admin-count").value) || 1;
+      const uses = parseInt(document.getElementById("admin-uses-limit").value) || 10;
+      const current = getStoredPasscodes();
+      const newKeys = [];
+
+      for (let i = 0; i < count; i++) {
+        const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
+        newKeys.push({ code: `CBT-${randomPart}`, usesLeft: uses });
+      }
+
+      savePasscodes([...current, ...newKeys]);
+      refreshAdminList();
+    }
+
+    function resetKeyDatabase() {
+      if (confirm("Revoke all active passcodes? All usage history will be wiped.")) {
+        localStorage.removeItem(STORAGE_KEY);
+        refreshAdminList();
+      }
+    }
+
+    /* --- COPY ALL PASSCODES TO CLIPBOARD --- */
+    function copyAllPasscodes() {
+      const keys = getStoredPasscodes();
+      if (keys.length === 0) {
+        alert("No passcodes available to copy.");
+        return;
+      }
+
+      let textOutput = "Passcode\tUses Left\tStatus\n";
+      keys.forEach(k => {
+        const status = k.usesLeft <= 0 ? "Exhausted" : "Active";
+        textOutput += `${k.code}\t${k.usesLeft}\t${status}\n`;
+      });
+
+      navigator.clipboard.writeText(textOutput.trim()).then(() => {
+        const btn = document.getElementById("copy-all-btn");
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = `
+          <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-emerald-700 font-semibold">Copied!</span>
+        `;
+        setTimeout(() => {
+          btn.innerHTML = originalHtml;
+        }, 2000);
+      }).catch(err => {
+        alert("Failed to copy passcodes to clipboard.");
+      });
+    }
+
+    /* --- EXPORT PASSCODES TO CSV FILE --- */
+    function exportPasscodesToCSV() {
+      const keys = getStoredPasscodes();
+      if (keys.length === 0) {
+        alert("No passcodes available to export.");
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,Passcode,Uses Left,Status\n";
+      keys.forEach(k => {
+        const status = k.usesLeft <= 0 ? "Exhausted" : "Active";
+        csvContent += `"${k.code}",${k.usesLeft},"${status}"\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `cbt_passcodes_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     /* ==========================================================
-       LOGIN & SESSION BINDING
+       LOGIN & COUNTDOWN DECREMENT
     ========================================================== */
     function handleLogin(event) {
       event.preventDefault();
@@ -331,36 +545,51 @@
       const enteredCode = input.value.trim().toUpperCase();
 
       const activeCodes = getStoredPasscodes();
-      const codeIndex = activeCodes.indexOf(enteredCode);
+      const codeRecord = activeCodes.find(item => item.code === enteredCode);
 
-      if (codeIndex === -1) {
-        errBox.textContent = "Invalid or already consumed passcode. Request a fresh code from the proctor.";
+      if (!codeRecord) {
+        errBox.textContent = "Invalid passcode. Please verify your assigned code.";
         errBox.classList.remove("hidden");
         return;
       }
 
-      // 1. Immediately invalidate/burn the passcode from storage
-      activeCodes.splice(codeIndex, 1);
+      if (codeRecord.usesLeft <= 0) {
+        errBox.textContent = "This passcode has reached its maximum usage limit (0 uses remaining).";
+        errBox.classList.remove("hidden");
+        return;
+      }
+
+      // Decrement the remaining uses count by 1
+      codeRecord.usesLeft -= 1;
       savePasscodes(activeCodes);
 
-      // 2. Lock this single browser session
+      // Lock current session with remaining count info
       const sessionData = {
         code: enteredCode,
+        usesLeft: codeRecord.usesLeft,
         startedAt: Date.now()
       };
       sessionStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(sessionData));
 
-      // 3. Launch the CBT Interface
-      launchExam(enteredCode);
+      launchExam(sessionData.code, sessionData.usesLeft);
     }
 
-    function launchExam(passcode) {
+    function launchExam(passcode, remainingUses) {
       document.getElementById("login-screen").classList.add("hidden");
       document.getElementById("cbt-app").classList.remove("hidden");
       document.getElementById("session-badge").textContent = passcode;
+      document.getElementById("uses-left-badge").textContent = `${remainingUses} use(s) left`;
       
       renderQuestion(0);
       startTimer();
+    }
+
+    function logoutUser() {
+      if (confirm("Are you sure you want to log out of this exam session?")) {
+        clearInterval(timerInterval);
+        sessionStorage.removeItem(SESSION_AUTH_KEY);
+        window.location.reload();
+      }
     }
 
     /* ==========================================================
@@ -478,8 +707,6 @@
 
     function submitExam() {
       clearInterval(timerInterval);
-
-      // Permanently clear active session so user cannot restart
       sessionStorage.removeItem(SESSION_AUTH_KEY);
 
       let score = 0;
@@ -516,12 +743,12 @@
       document.getElementById("final-percentage").textContent = `${Math.round((score / questions.length) * 100)}%`;
     }
 
-    // Auto-detect if session is already running
+    // Auto-resume if active session exists
     window.onload = () => {
       const activeSession = sessionStorage.getItem(SESSION_AUTH_KEY);
       if (activeSession) {
         const parsed = JSON.parse(activeSession);
-        launchExam(parsed.code);
+        launchExam(parsed.code, parsed.usesLeft);
       }
     };
   </script>
