@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Online CBT Portal</title>
+  <title>Secured CBT Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -12,217 +12,372 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
-  <!-- Top Navigation Header -->
-  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg md:text-xl font-bold tracking-tight">Civil Service & General Prep CBT</h1>
-        <p class="text-xs text-indigo-200">Practice Examination Portal</p>
+  <!-- ==========================================
+       VIEW 1: SECURE LOGIN GATEWAY
+  =========================================== -->
+  <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-slate-100">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200/80 p-8">
+      <div class="text-center mb-8">
+        <div class="w-12 h-12 bg-indigo-600 text-white rounded-xl mx-auto flex items-center justify-center font-bold text-xl mb-3 shadow-md shadow-indigo-200">
+          CBT
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Examination Login</h1>
+        <p class="text-sm text-slate-500 mt-1">Enter your assigned one-time access passcode</p>
       </div>
-      <div id="timer-box" class="flex items-center gap-2 bg-indigo-950 px-3 py-1.5 rounded-lg border border-indigo-700/50">
-        <span class="text-xs text-indigo-300 font-medium">Time Remaining:</span>
-        <span id="timer" class="font-mono text-base md:text-lg font-bold text-amber-400">10:00</span>
-      </div>
-    </div>
-  </header>
 
-  <!-- Main Container -->
-  <main class="max-w-6xl w-full mx-auto p-4 md:py-6 flex-grow flex flex-col">
-    
-    <!-- EXAM VIEW -->
-    <div id="exam-container" class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow">
-      
-      <!-- Question Section (Left 3 columns) -->
-      <section class="lg:col-span-3 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
         <div>
-          <!-- Question Header Status -->
-          <div class="flex justify-between items-center pb-4 border-b border-slate-100">
-            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md" id="question-badge">
-              Question 1 of 10
-            </span>
-            <span class="text-xs text-slate-400 font-medium" id="category-badge">General Knowledge</span>
-          </div>
-
-          <!-- Question Prompt -->
-          <div class="my-6">
-            <h2 id="question-text" class="text-lg md:text-xl font-medium leading-relaxed text-slate-900">
-              Loading question...
-            </h2>
-          </div>
-
-          <!-- Options List -->
-          <div id="options-container" class="space-y-3">
-            <!-- Dynamically populated options -->
-          </div>
+          <label for="passcode-input" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+            Exam Passcode
+          </label>
+          <input 
+            type="text" 
+            id="passcode-input" 
+            required 
+            placeholder="e.g. CBT-8A2F9B"
+            autocomplete="off"
+            class="w-full px-4 py-3 text-center tracking-widest uppercase font-mono text-lg rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition"
+          >
         </div>
 
-        <!-- Action / Navigation Buttons -->
-        <div class="pt-8 border-t border-slate-100 flex items-center justify-between gap-3 mt-6">
-          <button id="prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
-            Previous
-          </button>
-          <div class="flex gap-2">
-            <button id="clear-btn" onclick="clearAnswer()" class="px-4 py-2.5 rounded-lg text-slate-500 hover:text-rose-600 text-sm font-medium transition">
-              Clear Option
-            </button>
-            <button id="next-btn" onclick="nextQuestion()" class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm transition">
-              Next
-            </button>
-          </div>
-        </div>
-      </section>
+        <div id="login-error" class="hidden text-rose-600 text-xs font-medium bg-rose-50 p-3 rounded-lg border border-rose-200 text-center"></div>
 
-      <!-- Sidebar / Question Palette (Right 1 column) -->
-      <aside class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-        <div>
-          <h3 class="font-semibold text-slate-900 mb-2">Question Palette</h3>
-          <p class="text-xs text-slate-500 mb-4">Click any number to jump directly to that question.</p>
-          
-          <div id="palette-grid" class="grid grid-cols-5 gap-2">
-            <!-- Dynamically filled with buttons 1..N -->
-          </div>
-
-          <!-- Legend -->
-          <div class="mt-6 pt-4 border-t border-slate-100 text-xs space-y-2 text-slate-600">
-            <div class="flex items-center gap-2">
-              <span class="w-3.5 h-3.5 rounded bg-emerald-600 inline-block"></span>
-              <span>Answered</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3.5 h-3.5 rounded bg-indigo-600 ring-2 ring-indigo-300 inline-block"></span>
-              <span>Current Question</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3.5 h-3.5 rounded bg-slate-100 border border-slate-300 inline-block"></span>
-              <span>Unanswered</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Submit Button -->
-        <button onclick="confirmSubmit()" class="mt-6 w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg text-sm transition shadow-sm">
-          Submit Exam
+        <button 
+          type="submit" 
+          class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition shadow-md shadow-indigo-600/20 active:scale-[0.99]"
+        >
+          Verify & Start Exam
         </button>
-      </aside>
-    </div>
+      </form>
 
-    <!-- RESULT / SCORE VIEW (Hidden initially) -->
-    <div id="result-container" class="hidden max-w-3xl mx-auto w-full bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-      <div class="text-center pb-6 border-b border-slate-100">
-        <h2 class="text-2xl font-bold text-slate-900">Exam Results Summary</h2>
-        <p class="text-slate-500 text-sm mt-1">Assessment completed successfully.</p>
+      <!-- Admin Tools Drawer -->
+      <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+        <span>Session Protected</span>
+        <button onclick="toggleAdminModal(true)" class="hover:text-indigo-600 underline font-medium">
+          Admin: Passcode Manager
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       VIEW 2: CBT EXAM APPLICATION (Hidden)
+  =========================================== -->
+  <div id="cbt-app" class="hidden min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-indigo-950 text-white shadow sticky top-0 z-10 border-b border-indigo-800">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div>
+          <h1 class="text-base md:text-lg font-bold tracking-tight">Examination Assessment</h1>
+          <p class="text-xs text-indigo-300">Session ID: <span id="session-badge" class="font-mono text-amber-300"></span></p>
+        </div>
+        <div id="timer-box" class="flex items-center gap-2 bg-indigo-900/80 px-3.5 py-1.5 rounded-lg border border-indigo-700">
+          <span class="text-xs text-indigo-200">Time Left:</span>
+          <span id="timer" class="font-mono text-base md:text-lg font-bold text-amber-400">10:00</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Exam Body -->
+    <main class="max-w-6xl w-full mx-auto p-4 md:py-6 flex-grow flex flex-col">
+      <div id="exam-container" class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow">
         
-        <div class="mt-6 flex justify-center items-center gap-8">
-          <div class="text-center">
-            <span class="block text-4xl font-extrabold text-indigo-600" id="final-score">0 / 0</span>
-            <span class="text-xs font-medium text-slate-500 uppercase mt-1">Final Score</span>
+        <!-- Left Question Panel -->
+        <section class="lg:col-span-3 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+              <span class="text-xs font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-3 py-1 rounded-md" id="question-badge">
+                Question 1 of 5
+              </span>
+              <span class="text-xs text-slate-400 font-medium" id="category-badge">General</span>
+            </div>
+
+            <div class="my-6">
+              <h2 id="question-text" class="text-lg md:text-xl font-medium leading-relaxed text-slate-900">
+                Loading...
+              </h2>
+            </div>
+
+            <div id="options-container" class="space-y-3"></div>
           </div>
-          <div class="text-center">
-            <span class="block text-4xl font-extrabold text-slate-800" id="final-percentage">0%</span>
-            <span class="text-xs font-medium text-slate-500 uppercase mt-1">Percentage</span>
+
+          <!-- Bottom Action Buttons -->
+          <div class="pt-8 border-t border-slate-100 flex items-center justify-between gap-3 mt-6">
+            <button id="prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+              Previous
+            </button>
+            <div class="flex gap-2">
+              <button onclick="clearAnswer()" class="px-4 py-2.5 rounded-lg text-slate-500 hover:text-rose-600 text-sm font-medium transition">
+                Clear
+              </button>
+              <button id="next-btn" onclick="nextQuestion()" class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm transition">
+                Next
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <!-- Right Question Palette -->
+        <aside class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between">
+          <div>
+            <h3 class="font-semibold text-slate-900 mb-1">Question Palette</h3>
+            <p class="text-xs text-slate-500 mb-4">Click a question number to jump to it.</p>
+            
+            <div id="palette-grid" class="grid grid-cols-5 gap-2"></div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 text-xs space-y-2 text-slate-600">
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded bg-emerald-600 inline-block"></span>
+                <span>Answered</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded bg-indigo-600 ring-2 ring-indigo-300 inline-block"></span>
+                <span>Active</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded bg-slate-100 border border-slate-300 inline-block"></span>
+                <span>Unattempted</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="confirmSubmit()" class="mt-6 w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl text-sm transition shadow-sm">
+            End & Submit
+          </button>
+        </aside>
       </div>
 
-      <!-- Review Section -->
-      <div class="mt-6">
-        <h3 class="text-base font-semibold text-slate-900 mb-4">Question Breakdown & Corrections</h3>
-        <div id="review-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
-          <!-- Populated by JavaScript -->
+      <!-- Result View -->
+      <div id="result-container" class="hidden max-w-3xl mx-auto w-full bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+        <div class="text-center pb-6 border-b border-slate-100">
+          <h2 class="text-2xl font-bold text-slate-900">Final Assessment Result</h2>
+          <p class="text-slate-500 text-sm mt-1">This session is now permanently locked.</p>
+          
+          <div class="mt-6 flex justify-center items-center gap-8">
+            <div class="text-center">
+              <span class="block text-4xl font-extrabold text-indigo-600" id="final-score">0 / 0</span>
+              <span class="text-xs font-medium text-slate-500 uppercase mt-1">Score</span>
+            </div>
+            <div class="text-center">
+              <span class="block text-4xl font-extrabold text-slate-800" id="final-percentage">0%</span>
+              <span class="text-xs font-medium text-slate-500 uppercase mt-1">Percentage</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-800 mb-4">Detailed Correction</h3>
+          <div id="review-list" class="space-y-4 max-h-96 overflow-y-auto pr-2"></div>
         </div>
       </div>
+    </main>
+  </div>
 
-      <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-        <button onclick="location.reload()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg transition">
-          Retake Exam
+  <!-- ==========================================
+       ADMIN GENERATOR MODAL (Issue One-Time Passcodes)
+  =========================================== -->
+  <div id="admin-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-bold text-slate-900">Generate Unique Passcodes</h3>
+        <button onclick="toggleAdminModal(false)" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">
+        Each code is single-use only. Once a candidate logs in with a code, it is permanently consumed.
+      </p>
+
+      <div class="flex gap-2 mb-4">
+        <input id="admin-count" type="number" min="1" max="50" value="5" class="w-20 px-3 py-2 border rounded-lg text-sm text-center">
+        <button onclick="generatePasscodes()" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2">
+          Generate Keys
         </button>
       </div>
+
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Active Available Passcodes:</label>
+        <div id="active-keys-list" class="bg-slate-50 border border-slate-200 rounded-lg p-3 font-mono text-xs max-h-40 overflow-y-auto select-all">
+          No keys active.
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2">
+        <button onclick="resetKeyDatabase()" class="text-xs text-rose-600 hover:underline">Reset All Keys</button>
+        <button onclick="toggleAdminModal(false)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg">Close</button>
+      </div>
     </div>
-  </main>
+  </div>
 
   <script>
     /* ==========================================================
-       QUESTION BANK CONFIGURATION
-       Add, modify, or load questions directly from a JSON file.
+       QUESTION SETTINGS
     ========================================================== */
     const questions = [
       {
         id: 1,
-        category: "Civil Service & Public Admin",
-        question: "Which of the following is considered the primary role of the Civil Service?",
+        category: "Civil Service & Governance",
+        question: "Which of the following is considered the primary constitutional role of the Civil Service?",
         options: [
-          "Enacting legislative statutes",
-          "Implementing government policies and public service delivery",
-          "Adjudicating constitutional disputes",
-          "Conducting periodic national elections"
+          "Passing executive decrees and legislative bills",
+          "Implementing governmental policies and delivering public services",
+          "Adjudicating constitutional disputes between tiers of government",
+          "Formulating and auditing national budget allocations"
         ],
         answer: 1
       },
       {
         id: 2,
-        category: "Public Administration",
-        question: "What administrative concept emphasizes that an employee should receive orders from only one superior?",
-        options: [
-          "Span of Control",
-          "Unity of Direction",
-          "Unity of Command",
-          "Scalar Chain"
-        ],
+        category: "Administrative Principles",
+        question: "The administrative principle stating that an employee should report to exactly one supervisor is:",
+        options: ["Scalar Chain", "Span of Control", "Unity of Command", "Division of Labor"],
         answer: 2
       },
       {
         id: 3,
         category: "General Knowledge",
-        question: "The acronym 'KPI' in public sector performance management stands for:",
+        question: "The acronym 'KPI' commonly utilized in civil performance appraisals stands for:",
+        options: ["Key Public Implementation", "Key Performance Indicator", "Knowledge Protocol Index", "Kinetic Project Inquiry"],
+        answer: 1
+      },
+      {
+        id: 4,
+        category: "Public Sector Ethics",
+        question: "The principle of civil service 'political neutrality' means that civil servants must:",
         options: [
-          "Key Public Indicator",
-          "Knowledge Production Index",
-          "Key Performance Indicator",
-          "Kinetic Process Implementation"
+          "Not participate in any civil society debates",
+          "Refrain from voting during general elections",
+          "Serve the government of the day loyally irrespective of their political party",
+          "Register as non-aligned judicial members"
         ],
         answer: 2
       },
       {
-        id: 4,
-        category: "Governance",
-        question: "The principle of separation of powers divides government authority between which three organs?",
+        id: 5,
+        category: "Logical Deduction",
+        question: "If all administrative heads are officers, and some officers are auditors, which statement is definitely true?",
         options: [
-          "Executive, Bureaucracy, and Judiciary",
-          "Legislature, Executive, and Judiciary",
-          "Federal, State, and Local Government",
-          "Cabinet, Senate, and Military"
+          "All administrative heads are auditors",
+          "Some administrative heads might be auditors",
+          "No auditors are officers",
+          "All auditors are administrative heads"
         ],
         answer: 1
-      },
-      {
-        id: 5,
-        category: "Logic & Critical Reasoning",
-        question: "Complete the sequence: 3, 7, 15, 31, 63, ___",
-        options: ["127", "95", "125", "118"],
-        answer: 0
       }
     ];
 
     /* ==========================================================
-       STATE MANAGEMENT
+       SECURITY & TOKEN STORE ENGINE
     ========================================================== */
-    let currentIndex = 0;
-    const userAnswers = {}; // { questionIndex: selectedOptionIndex }
-    let timeRemaining = 10 * 60; // 10 minutes in seconds
-    let timerInterval = null;
+    const STORAGE_KEY = "CBT_PASSCODES_V1";
+    const SESSION_AUTH_KEY = "CBT_ACTIVE_SESSION";
+
+    // Initialize default starter passcodes if none exist
+    function getStoredPasscodes() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) {
+        const defaults = ["CBT-A89F2", "CBT-B47X1", "CBT-D92K8"];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
+        return defaults;
+      }
+      return JSON.parse(stored);
+    }
+
+    function savePasscodes(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function refreshAdminList() {
+      const keys = getStoredPasscodes();
+      const container = document.getElementById("active-keys-list");
+      if (keys.length === 0) {
+        container.innerHTML = "<span class='text-slate-400'>No active passcodes. Generate new ones above.</span>";
+      } else {
+        container.innerHTML = keys.map(k => `<div>${k}</div>`).join("");
+      }
+    }
+
+    function generatePasscodes() {
+      const count = parseInt(document.getElementById("admin-count").value) || 1;
+      const current = getStoredPasscodes();
+      const newKeys = [];
+
+      for (let i = 0; i < count; i++) {
+        const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
+        newKeys.push(`CBT-${randomPart}`);
+      }
+
+      savePasscodes([...current, ...newKeys]);
+      refreshAdminList();
+    }
+
+    function resetKeyDatabase() {
+      if (confirm("Revoke all active passcodes? Unused passcodes will be wiped.")) {
+        localStorage.removeItem(STORAGE_KEY);
+        refreshAdminList();
+      }
+    }
+
+    function toggleAdminModal(show) {
+      document.getElementById("admin-modal").classList.toggle("hidden", !show);
+      if (show) refreshAdminList();
+    }
 
     /* ==========================================================
-       TIMER ENGINE
+       LOGIN & SESSION BINDING
     ========================================================== */
+    function handleLogin(event) {
+      event.preventDefault();
+      const input = document.getElementById("passcode-input");
+      const errBox = document.getElementById("login-error");
+      const enteredCode = input.value.trim().toUpperCase();
+
+      const activeCodes = getStoredPasscodes();
+      const codeIndex = activeCodes.indexOf(enteredCode);
+
+      if (codeIndex === -1) {
+        errBox.textContent = "Invalid or already consumed passcode. Request a fresh code from the proctor.";
+        errBox.classList.remove("hidden");
+        return;
+      }
+
+      // 1. Immediately invalidate/burn the passcode from storage
+      activeCodes.splice(codeIndex, 1);
+      savePasscodes(activeCodes);
+
+      // 2. Lock this single browser session
+      const sessionData = {
+        code: enteredCode,
+        startedAt: Date.now()
+      };
+      sessionStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(sessionData));
+
+      // 3. Launch the CBT Interface
+      launchExam(enteredCode);
+    }
+
+    function launchExam(passcode) {
+      document.getElementById("login-screen").classList.add("hidden");
+      document.getElementById("cbt-app").classList.remove("hidden");
+      document.getElementById("session-badge").textContent = passcode;
+      
+      renderQuestion(0);
+      startTimer();
+    }
+
+    /* ==========================================================
+       EXAM ENGINE & LOGIC
+    ========================================================== */
+    let currentIndex = 0;
+    const userAnswers = {};
+    let timeRemaining = 10 * 60;
+    let timerInterval = null;
+
     function startTimer() {
       const timerDisplay = document.getElementById("timer");
       timerInterval = setInterval(() => {
         timeRemaining--;
-        const minutes = Math.floor(timeRemaining / 60);
-        const seconds = timeRemaining % 60;
-
-        timerDisplay.textContent = 
-          `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        const mins = Math.floor(timeRemaining / 60);
+        const secs = timeRemaining % 60;
+        timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
         if (timeRemaining <= 60) {
           timerDisplay.classList.remove("text-amber-400");
@@ -231,15 +386,12 @@
 
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
-          alert("Time has elapsed! Your test is being submitted automatically.");
+          alert("Time is up! Your responses are submitting automatically.");
           submitExam();
         }
       }, 1000);
     }
 
-    /* ==========================================================
-       RENDER QUESTION & OPTIONS
-    ========================================================== */
     function renderQuestion(index) {
       currentIndex = index;
       const q = questions[index];
@@ -248,41 +400,34 @@
       document.getElementById("category-badge").textContent = q.category;
       document.getElementById("question-text").textContent = q.question;
 
-      // Update Nav Buttons
       document.getElementById("prev-btn").disabled = (index === 0);
       document.getElementById("prev-btn").classList.toggle("opacity-40", index === 0);
-      document.getElementById("prev-btn").classList.toggle("cursor-not-allowed", index === 0);
-
       document.getElementById("next-btn").textContent = (index === questions.length - 1) ? "Review" : "Next";
 
-      // Render Options
-      const optionsContainer = document.getElementById("options-container");
-      optionsContainer.innerHTML = "";
+      const container = document.getElementById("options-container");
+      container.innerHTML = "";
 
       q.options.forEach((opt, optIndex) => {
         const isSelected = userAnswers[index] === optIndex;
-        
-        const optionLabel = document.createElement("label");
-        optionLabel.className = `flex items-center gap-3.5 p-3.5 rounded-lg border cursor-pointer text-sm transition ${
+        const label = document.createElement("label");
+        label.className = `flex items-center gap-3.5 p-3.5 rounded-xl border cursor-pointer text-sm transition ${
           isSelected 
             ? "border-indigo-600 bg-indigo-50/70 font-semibold text-indigo-900 shadow-sm ring-1 ring-indigo-600" 
             : "border-slate-200 hover:bg-slate-50 text-slate-700"
         }`;
-
-        optionLabel.innerHTML = `
-          <input type="radio" name="cbt-option" value="${optIndex}" ${isSelected ? "checked" : ""} 
+        label.innerHTML = `
+          <input type="radio" name="opt" value="${optIndex}" ${isSelected ? "checked" : ""} 
             onchange="selectOption(${optIndex})" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300">
           <span class="flex-grow">${opt}</span>
         `;
-
-        optionsContainer.appendChild(optionLabel);
+        container.appendChild(label);
       });
 
       renderPalette();
     }
 
-    function selectOption(optionIndex) {
-      userAnswers[currentIndex] = optionIndex;
+    function selectOption(optIndex) {
+      userAnswers[currentIndex] = optIndex;
       renderQuestion(currentIndex);
     }
 
@@ -292,20 +437,13 @@
     }
 
     function nextQuestion() {
-      if (currentIndex < questions.length - 1) {
-        renderQuestion(currentIndex + 1);
-      }
+      if (currentIndex < questions.length - 1) renderQuestion(currentIndex + 1);
     }
 
     function prevQuestion() {
-      if (currentIndex > 0) {
-        renderQuestion(currentIndex - 1);
-      }
+      if (currentIndex > 0) renderQuestion(currentIndex - 1);
     }
 
-    /* ==========================================================
-       QUESTION PALETTE / GRID
-    ========================================================== */
     function renderPalette() {
       const palette = document.getElementById("palette-grid");
       palette.innerHTML = "";
@@ -315,12 +453,9 @@
         btn.textContent = i + 1;
         btn.className = "w-full aspect-square text-xs font-semibold rounded-lg flex items-center justify-center transition";
 
-        const isAnswered = userAnswers[i] !== undefined;
-        const isCurrent = i === currentIndex;
-
-        if (isCurrent) {
+        if (i === currentIndex) {
           btn.className += " bg-indigo-600 text-white ring-2 ring-offset-2 ring-indigo-600";
-        } else if (isAnswered) {
+        } else if (userAnswers[i] !== undefined) {
           btn.className += " bg-emerald-600 text-white hover:bg-emerald-700";
         } else {
           btn.className += " bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200";
@@ -331,23 +466,21 @@
       });
     }
 
-    /* ==========================================================
-       SUBMISSION & GRADING
-    ========================================================== */
     function confirmSubmit() {
-      const answeredCount = Object.keys(userAnswers).length;
-      const unAnswered = questions.length - answeredCount;
+      const answered = Object.keys(userAnswers).length;
+      const unAnswered = questions.length - answered;
       const msg = unAnswered > 0 
-        ? `You still have ${unAnswered} unanswered question(s). Are you sure you want to finish?`
-        : "Are you sure you want to submit your test?";
+        ? `You have ${unAnswered} unanswered question(s). Finish and submit?`
+        : "Are you ready to submit your exam?";
 
-      if (confirm(msg)) {
-        submitExam();
-      }
+      if (confirm(msg)) submitExam();
     }
 
     function submitExam() {
       clearInterval(timerInterval);
+
+      // Permanently clear active session so user cannot restart
+      sessionStorage.removeItem(SESSION_AUTH_KEY);
 
       let score = 0;
       const reviewContainer = document.getElementById("review-list");
@@ -358,10 +491,8 @@
         const isCorrect = userChoice === q.answer;
         if (isCorrect) score++;
 
-        // Render review item
         const item = document.createElement("div");
-        item.className = `p-4 rounded-lg border text-sm ${isCorrect ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40'}`;
-        
+        item.className = `p-4 rounded-xl border text-sm ${isCorrect ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40'}`;
         item.innerHTML = `
           <div class="flex items-center justify-between font-semibold mb-1">
             <span>Q${idx + 1}: ${q.question}</span>
@@ -370,14 +501,13 @@
             </span>
           </div>
           <p class="text-xs text-slate-600 mt-2">
-            <strong>Your answer:</strong> ${userChoice !== undefined ? q.options[userChoice] : '<span class="text-slate-400">Not Attempted</span>'}
+            <strong>Selected:</strong> ${userChoice !== undefined ? q.options[userChoice] : '<span class="text-slate-400">Not Answered</span>'}
           </p>
-          ${!isCorrect ? `<p class="text-xs text-emerald-700 mt-1 font-medium"><strong>Correct answer:</strong> ${q.options[q.answer]}</p>` : ''}
+          ${!isCorrect ? `<p class="text-xs text-emerald-700 mt-1 font-medium"><strong>Correct:</strong> ${q.options[q.answer]}</p>` : ''}
         `;
         reviewContainer.appendChild(item);
       });
 
-      // Show Results screen
       document.getElementById("exam-container").classList.add("hidden");
       document.getElementById("timer-box").classList.add("hidden");
       document.getElementById("result-container").classList.remove("hidden");
@@ -386,10 +516,13 @@
       document.getElementById("final-percentage").textContent = `${Math.round((score / questions.length) * 100)}%`;
     }
 
-    // Initialize application
+    // Auto-detect if session is already running
     window.onload = () => {
-      renderQuestion(0);
-      startTimer();
+      const activeSession = sessionStorage.getItem(SESSION_AUTH_KEY);
+      if (activeSession) {
+        const parsed = JSON.parse(activeSession);
+        launchExam(parsed.code);
+      }
     };
   </script>
 </body>
